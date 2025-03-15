@@ -10,7 +10,7 @@
             {{ formatDuration(artist.totalTime) }} total listening time
           </div>
           <div class="text-xs text-gray-400">
-            {{ artist.trackCount }} different tracks
+            {{ artist.trackCount }} plays, {{ artist.tracks.size }} different tracks
           </div>
         </div>
       </div>
@@ -43,6 +43,7 @@ interface ArtistStats {
   name: string
   totalTime: number
   trackCount: number
+  tracks: Set<string>
 }
 
 const topArtists = computed(() => {
@@ -50,17 +51,21 @@ const topArtists = computed(() => {
   
   props.streamingData.forEach(item => {
     const artistName = item.master_metadata_album_artist_name
-    if (!artistName) return
+    const trackName = item.master_metadata_track_name
+    if (!artistName || !trackName) return
 
     const current = artistMap.get(artistName) || {
       name: artistName,
       totalTime: 0,
-      trackCount: 0
+      trackCount: 0,
+      tracks: new Set<string>()
     }
-
-    const trackName = item.master_metadata_track_name
-    if (trackName && !current.trackCount) {
+    
+    if (trackName) {
       current.trackCount++
+      if (!current.tracks.has(trackName)) {
+        current.tracks.add(trackName)
+      }
     }
 
     current.totalTime += item.ms_played

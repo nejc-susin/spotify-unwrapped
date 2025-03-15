@@ -39,6 +39,10 @@
           <TopSongs :streaming-data="streamingData" />
           <TopAlbums :streaming-data="streamingData" />
         </div>
+
+        <div class="mt-6 h-[400px]">
+          <ListeningHistory :streaming-data="streamingData" />
+        </div>
       </div>
     </div>
   </div>
@@ -49,6 +53,7 @@ import { ref, computed } from 'vue'
 import TopArtists from './components/TopArtists.vue'
 import TopSongs from './components/TopSongs.vue'
 import TopAlbums from './components/TopAlbums.vue'
+import ListeningHistory from './components/ListeningHistory.vue'
 
 interface StreamingHistoryItem {
   ts: string

@@ -10,7 +10,7 @@
             {{ album.artistName }} • {{ formatDuration(album.totalTime) }} total
           </div>
           <div class="text-xs text-gray-400">
-            {{ album.trackCount }} tracks
+            {{ album.trackCount }} tracks played
           </div>
           <div class="text-xs text-gray-400">
             Most played: {{ album.topTrack }}
@@ -77,7 +77,7 @@ const topAlbums = computed(() => {
     current.tracks.set(trackName, trackTime + item.ms_played)
 
     // Update track count and top track
-    if (!current.tracks.has(trackName)) {
+    if (current.tracks.has(trackName)) {
       current.trackCount++
     }
     
