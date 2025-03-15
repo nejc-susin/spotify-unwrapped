@@ -1,0 +1,25 @@
+{
+  "name": "spotify-unwrapped",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "vue": "^3.3.4",
+    "vue-chartjs": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vue-tsc": "^1.8.5"
+  }
+}
