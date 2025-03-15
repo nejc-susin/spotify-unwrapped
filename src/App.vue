@@ -36,6 +36,13 @@
             >
               Daily Listening
             </button>
+            <button 
+              @click="activeTab = 'search'"
+              class="px-4 py-2 rounded-lg"
+              :class="activeTab === 'search' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+            >
+              Search
+            </button>
           </div>
           
           <select 
@@ -76,8 +83,11 @@
           </div>
         </div>
 
-        <div v-else>
+        <div v-else-if="activeTab === 'daily'">
           <DailyListening :streaming-data="streamingData" />
+        </div>
+        <div v-else>
+          <SearchPlays :streaming-data="streamingData" />
         </div>
       </div>
     </div>
@@ -91,6 +101,7 @@ import TopSongs from './components/TopSongs.vue'
 import TopAlbums from './components/TopAlbums.vue'
 import ListeningHistory from './components/ListeningHistory.vue'
 import DailyListening from './components/DailyListening.vue'
+import SearchPlays from './components/SearchPlays.vue'
 
 interface StreamingHistoryItem {
   ts: string
