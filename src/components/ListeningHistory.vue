@@ -1,29 +1,20 @@
 <template>
   <div class="bg-white p-6 rounded-lg shadow">
-    <div class="flex justify-between items-center mb-4">
+    <div class="mb-4">
       <h2 class="text-2xl font-bold">Listening History</h2>
-      <select 
-        v-model="selectedYear" 
-        class="border rounded px-3 py-1"
-        @change="updateChart"
-      >
-        <option v-for="year in availableYears" :key="year" :value="year">
-          {{ year }}
-        </option>
-      </select>
     </div>
     <div class="chart-container">
-        <Bar
+      <Bar
         v-if="chartData"
         :data="chartData"
         :options="chartOptions"
-        />
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -62,25 +53,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const selectedYear = ref<number>(new Date().getFullYear())
 const chartData = ref<any>(null)
-
-const availableYears = computed(() => {
-  const years = new Set<number>()
-  props.streamingData.forEach(item => {
-    const year = new Date(item.ts).getFullYear()
-    years.add(year)
-  })
-  return Array.from(years).sort((a, b) => b - a) // Sort descending
-})
-
-// Set initial year to most recent year in data
-onMounted(() => {
-  if (availableYears.value.length > 0) {
-    selectedYear.value = availableYears.value[0]
-    updateChart()
-  }
-})
 
 const chartOptions = {
   responsive: true,
@@ -115,10 +88,15 @@ const chartOptions = {
 }
 
 const updateChart = () => {
-  // Get all days in the selected year
-  const start = startOfYear(new Date(selectedYear.value, 0, 1))
-  const end = endOfYear(start)
-  const days = eachDayOfInterval({ start, end })
+  if (!props.streamingData.length) return
+
+  // Get the year range from the data
+  const dates = props.streamingData.map(item => new Date(item.ts))
+  const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
+  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
+  
+  // Get all days in the range
+  const days = eachDayOfInterval({ start: minDate, end: maxDate })
 
   // Initialize minutes for each day
   const dailyMinutes = new Map<string, number>()
@@ -129,28 +107,29 @@ const updateChart = () => {
   // Sum up minutes for each day
   props.streamingData.forEach(item => {
     const date = format(new Date(item.ts), 'yyyy-MM-dd')
-    const year = new Date(item.ts).getFullYear()
-    
-    if (year === selectedYear.value) {
-      const currentMinutes = dailyMinutes.get(date) || 0
-      dailyMinutes.set(date, currentMinutes + (item.ms_played / (1000 * 60)))
-    }
+    const currentMinutes = dailyMinutes.get(date) || 0
+    dailyMinutes.set(date, currentMinutes + (item.ms_played / (1000 * 60)))
   })
 
   // Create chart data
   chartData.value = {
     labels: Array.from(dailyMinutes.keys()).map(date => 
-      format(parse(date, 'yyyy-MM-dd', new Date()), 'MMM d')
+      format(parse(date, 'yyyy-MM-dd', new Date()), 'MMM d, yyyy')
     ),
     datasets: [
       {
         data: Array.from(dailyMinutes.values()).map(minutes => Math.round(minutes)),
-        backgroundColor: '#22c55e', // Green color matching the upload button
+        backgroundColor: '#22c55e',
         borderRadius: 4
       }
     ]
   }
 }
+
+// Watch for changes in streaming data
+watch(() => props.streamingData, () => {
+  updateChart()
+}, { immediate: true })
 </script>
 
 <style scoped>

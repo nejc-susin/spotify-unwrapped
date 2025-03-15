@@ -20,6 +20,18 @@
       </div>
 
       <div v-else>
+        <div class="mb-8 flex justify-end">
+          <select 
+            v-model="selectedYear" 
+            class="border rounded px-3 py-1"
+          >
+            <option value="all">All Years</option>
+            <option v-for="year in availableYears" :key="year" :value="year">
+              {{ year }}
+            </option>
+          </select>
+        </div>
+
         <div class="mb-8 bg-white p-6 rounded-lg shadow">
           <h2 class="text-2xl font-bold mb-4">Listening Overview</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -35,13 +47,13 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <TopArtists :streaming-data="streamingData" />
-          <TopSongs :streaming-data="streamingData" />
-          <TopAlbums :streaming-data="streamingData" />
+          <TopArtists :streaming-data="filteredData" />
+          <TopSongs :streaming-data="filteredData" />
+          <TopAlbums :streaming-data="filteredData" />
         </div>
 
         <div class="mt-6 h-[400px]">
-          <ListeningHistory :streaming-data="streamingData" />
+          <ListeningHistory :streaming-data="filteredData" />
         </div>
       </div>
     </div>
@@ -65,10 +77,32 @@ interface StreamingHistoryItem {
   master_metadata_track_name: string
   master_metadata_album_artist_name: string
   master_metadata_album_album_name: string
+  reason_end: string
 }
 
 const streamingData = ref<StreamingHistoryItem[]>()
 const fileInput = ref<HTMLInputElement>()
+const selectedYear = ref<string | number>('all')
+
+const availableYears = computed(() => {
+  if (!streamingData.value) return []
+  const years = new Set<number>()
+  streamingData.value.forEach(item => {
+    const year = new Date(item.ts).getFullYear()
+    years.add(year)
+  })
+  return Array.from(years).sort((a, b) => b - a) // Sort descending
+})
+
+const filteredData = computed(() => {
+  if (!streamingData.value) return []
+  if (selectedYear.value === 'all') return streamingData.value
+
+  return streamingData.value.filter(item => {
+    const year = new Date(item.ts).getFullYear()
+    return year === selectedYear.value
+  })
+})
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -76,12 +110,18 @@ const handleFileUpload = async (event: Event) => {
 
   const file = target.files[0]
   const text = await file.text()
-  streamingData.value = JSON.parse(text)
+  const rawData = JSON.parse(text)
+  // Filter to only include tracks that ended with "trackdone"
+  streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
+  // Set initial year to most recent
+  if (availableYears.value.length > 0) {
+    selectedYear.value = availableYears.value[0]
+  }
 }
 
 const totalListeningTime = computed(() => {
-  if (!streamingData.value) return 0
-  return streamingData.value.reduce((total, item) => total + item.ms_played, 0)
+  if (!filteredData.value) return 0
+  return filteredData.value.reduce((total, item) => total + item.ms_played, 0)
 })
 
 const formatDuration = (ms: number) => {
