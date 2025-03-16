@@ -5,9 +5,9 @@
       <div v-for="(song, index) in topSongs" :key="song.trackName" class="flex items-center">
         <span class="w-6 text-gray-500">{{ index + 1 }}.</span>
         <div class="flex-1">
-          <div class="font-semibold">{{ song.trackName }}</div>
+          <div class="font-semibold cursor-pointer hover:text-green-600" @click="emit('search', { type: 'track', query: song.trackName })">{{ song.trackName }}</div>
           <div class="text-sm text-gray-500">
-            {{ song.artistName }} • {{ formatDuration(song.totalTime) }} total
+            <span class="cursor-pointer hover:text-green-600" @click="emit('search', { type: 'artist', query: song.artistName })">{{ song.artistName }}</span> • {{ formatDuration(song.totalTime) }} total
           </div>
           <div class="text-xs text-gray-400">
             Played {{ song.playCount }} times
@@ -38,6 +38,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'search', params: { type: string, query: string }): void
+}>()
 
 interface SongStats {
   trackName: string

@@ -76,9 +76,9 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <TopArtists :streaming-data="filteredData" />
-              <TopSongs :streaming-data="filteredData" />
-              <TopAlbums :streaming-data="filteredData" />
+              <TopArtists :streaming-data="filteredData" @search="handleSearch" />
+              <TopSongs :streaming-data="filteredData" @search="handleSearch" />
+              <TopAlbums :streaming-data="filteredData" @search="handleSearch" />
             </div>
 
             <div class="mt-6 h-[400px]">
@@ -99,7 +99,7 @@
             />
           </div>
           <div v-else>
-            <SearchPlays :streaming-data="streamingData" />
+            <SearchPlays ref="searchComponent" :streaming-data="streamingData" />
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import TopArtists from './components/TopArtists.vue'
 import TopSongs from './components/TopSongs.vue'
 import TopAlbums from './components/TopAlbums.vue'
@@ -134,6 +134,7 @@ const fileInput = ref<HTMLInputElement>()
 const selectedYear = ref<string | number>('all')
 const activeTab = ref('overview')
 const selectedDate = ref('')
+const searchComponent = ref(null)
 
 const availableYears = computed(() => {
   if (!streamingData.value) return []
@@ -186,8 +187,22 @@ const formatDuration = (ms: number) => {
 }
 
 // Function to handle tab switching
-const switchTab = (tab: string) => {
+const switchTab = (tab: string, searchParams?: { type: string, query: string }) => {
   activeTab.value = tab
-  window.scrollTo({ top: 0, behavior: 'auto' })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  
+  if (tab === 'search' && searchParams) {
+    // Wait for the next tick to ensure the search component is mounted
+    nextTick(() => {
+      // Access the exposed properties
+      searchComponent.value.searchQuery = searchParams.query
+      searchComponent.value.searchType = searchParams.type
+      searchComponent.value.performSearch()
+    })
+  }
+}
+
+const handleSearch = (params: { type: string, query: string }) => {
+  switchTab('search', params)
 }
 </script> 

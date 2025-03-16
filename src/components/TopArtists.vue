@@ -5,7 +5,7 @@
       <div v-for="(artist, index) in topArtists" :key="artist.name" class="flex items-center">
         <span class="w-6 text-gray-500">{{ index + 1 }}.</span>
         <div class="flex-1">
-          <div class="font-semibold">{{ artist.name }}</div>
+          <div class="font-semibold cursor-pointer hover:text-green-600" @click="emit('search', { type: 'artist', query: artist.name })">{{ artist.name }}</div>
           <div class="text-sm text-gray-500">
             {{ formatDuration(artist.totalTime) }} total listening time
           </div>
@@ -38,6 +38,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'search', params: { type: string, query: string }): void
+}>()
 
 interface ArtistStats {
   name: string

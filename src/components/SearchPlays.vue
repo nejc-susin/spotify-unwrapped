@@ -180,4 +180,11 @@ const formatDuration = (ms: number) => {
   const seconds = Math.floor((ms % (1000 * 60)) / 1000)
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
+
+// Expose properties and methods for external access
+defineExpose({
+  searchType,
+  searchQuery,
+  performSearch
+})
 </script> 

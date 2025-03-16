@@ -5,15 +5,15 @@
       <div v-for="(album, index) in topAlbums" :key="album.name" class="flex items-center">
         <span class="w-6 text-gray-500">{{ index + 1 }}.</span>
         <div class="flex-1">
-          <div class="font-semibold">{{ album.name }}</div>
+          <div class="font-semibold cursor-pointer hover:text-green-600" @click="emit('search', { type: 'album', query: album.name })">{{ album.name }}</div>
           <div class="text-sm text-gray-500">
-            {{ album.artistName }} • {{ formatDuration(album.totalTime) }} total
+            <span class="cursor-pointer hover:text-green-600" @click="emit('search', { type: 'artist', query: album.artistName })">{{ album.artistName }}</span> • {{ formatDuration(album.totalTime) }} total
           </div>
           <div class="text-xs text-gray-400">
             {{ album.trackCount }} tracks played
           </div>
           <div class="text-xs text-gray-400">
-            Most played: {{ album.topTrack }}
+            Most played: <span class="cursor-pointer hover:text-green-600" @click="emit('search', { type: 'track', query: album.topTrack })">{{ album.topTrack }}</span>
           </div>
         </div>
       </div>
@@ -41,6 +41,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'search', params: { type: string, query: string }): void
+}>()
 
 interface AlbumStats {
   name: string
