@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { format, parse } from 'date-fns'
 
 interface StreamingHistoryItem {
@@ -80,10 +80,11 @@ interface StreamingHistoryItem {
 
 interface Props {
   streamingData: StreamingHistoryItem[]
+  initialDate?: string
 }
 
 const props = defineProps<Props>()
-const selectedDate = ref('')
+const selectedDate = ref(props.initialDate || '')
 const searchQuery = ref('')
 const sortBy = ref('time')
 
@@ -150,4 +151,11 @@ const formatDuration = (ms: number) => {
   const seconds = Math.floor((ms % (1000 * 60)) / 1000)
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
+
+// Watch for changes in initialDate prop
+watch(() => props.initialDate, (newDate) => {
+  if (newDate) {
+    selectedDate.value = newDate
+  }
+})
 </script> 

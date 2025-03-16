@@ -24,21 +24,21 @@
           <div class="flex justify-between items-center">
             <div class="flex space-x-4">
               <button 
-                @click="activeTab = 'overview'"
+                @click="switchTab('overview')"
                 class="px-4 py-2 rounded-lg"
                 :class="activeTab === 'overview' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
               >
                 Overview
               </button>
               <button 
-                @click="activeTab = 'daily'"
+                @click="switchTab('daily')"
                 class="px-4 py-2 rounded-lg"
                 :class="activeTab === 'daily' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
               >
                 Daily Listening
               </button>
               <button 
-                @click="activeTab = 'search'"
+                @click="switchTab('search')"
                 class="px-4 py-2 rounded-lg"
                 :class="activeTab === 'search' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
               >
@@ -82,12 +82,21 @@
             </div>
 
             <div class="mt-6 h-[400px]">
-              <ListeningHistory :streaming-data="filteredData" />
+              <ListeningHistory 
+                :streaming-data="filteredData" 
+                @date-select="date => {
+                  selectedDate = date;
+                  switchTab('daily');
+                }"
+              />
             </div>
           </div>
 
           <div v-else-if="activeTab === 'daily'">
-            <DailyListening :streaming-data="streamingData" />
+            <DailyListening 
+              :streaming-data="streamingData" 
+              :initial-date="selectedDate"
+            />
           </div>
           <div v-else>
             <SearchPlays :streaming-data="streamingData" />
@@ -124,6 +133,7 @@ const streamingData = ref<StreamingHistoryItem[]>()
 const fileInput = ref<HTMLInputElement>()
 const selectedYear = ref<string | number>('all')
 const activeTab = ref('overview')
+const selectedDate = ref('')
 
 const availableYears = computed(() => {
   if (!streamingData.value) return []
@@ -173,5 +183,11 @@ const formatDuration = (ms: number) => {
     return `${hours}h ${minutes}m`
   }
   return `${minutes}m`
+}
+
+// Function to handle tab switching
+const switchTab = (tab: string) => {
+  activeTab.value = tab
+  window.scrollTo({ top: 0, behavior: 'auto' })
 }
 </script> 

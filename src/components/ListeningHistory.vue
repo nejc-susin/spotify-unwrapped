@@ -54,6 +54,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const chartData = ref<any>(null)
+const dailyMinutes = ref(new Map<string, number>())
 
 const chartOptions = {
   responsive: true,
@@ -84,8 +85,24 @@ const chartOptions = {
         minRotation: 90
       }
     }
+  },
+  onHover: (evt, activeEls) => {
+      activeEls.length > 0 ? evt.chart.canvas.style.cursor = 'pointer' : evt.chart.canvas.style.cursor = 'default';
+    },
+  onClick: (event: any, elements: any[]) => {
+    if (elements.length > 0) {
+      const index = elements[0].index
+      const dates = Array.from(dailyMinutes.value.keys())
+      if (dates[index]) {
+        emit('dateSelect', dates[index])
+      }
+    }
   }
 }
+
+const emit = defineEmits<{
+  (e: 'dateSelect', date: string): void
+}>()
 
 const updateChart = () => {
   if (!props.streamingData.length) return
@@ -99,26 +116,26 @@ const updateChart = () => {
   const days = eachDayOfInterval({ start: minDate, end: maxDate })
 
   // Initialize minutes for each day
-  const dailyMinutes = new Map<string, number>()
+  dailyMinutes.value = new Map()
   days.forEach(day => {
-    dailyMinutes.set(format(day, 'yyyy-MM-dd'), 0)
+    dailyMinutes.value.set(format(day, 'yyyy-MM-dd'), 0)
   })
 
   // Sum up minutes for each day
   props.streamingData.forEach(item => {
     const date = format(new Date(item.ts), 'yyyy-MM-dd')
-    const currentMinutes = dailyMinutes.get(date) || 0
-    dailyMinutes.set(date, currentMinutes + (item.ms_played / (1000 * 60)))
+    const currentMinutes = dailyMinutes.value.get(date) || 0
+    dailyMinutes.value.set(date, currentMinutes + (item.ms_played / (1000 * 60)))
   })
 
   // Create chart data
   chartData.value = {
-    labels: Array.from(dailyMinutes.keys()).map(date => 
+    labels: Array.from(dailyMinutes.value.keys()).map(date => 
       format(parse(date, 'yyyy-MM-dd', new Date()), 'MMM d, yyyy')
     ),
     datasets: [
       {
-        data: Array.from(dailyMinutes.values()).map(minutes => Math.round(minutes)),
+        data: Array.from(dailyMinutes.value.values()).map(minutes => Math.round(minutes)),
         backgroundColor: '#22c55e',
         borderRadius: 4
       }
