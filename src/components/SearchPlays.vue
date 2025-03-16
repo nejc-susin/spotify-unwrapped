@@ -35,7 +35,7 @@
           :tracks="searchResults" 
           :show-date="true" 
           :show-time="true"
-          @search="emit('search', $event)"
+          @search="handleTableSearch"
         />
       </div>
 
@@ -88,6 +88,12 @@ const searchQuery = ref('')
 const searchType = ref('all')
 const hasSearched = ref(false)
 const searchResults = ref<StreamingHistoryItem[]>([])
+
+const handleTableSearch = (params: { type: string, query: string }) => {
+  searchType.value = params.type
+  searchQuery.value = params.query
+  performSearch()
+}
 
 const performSearch = () => {
   if (!searchQuery.value.trim()) {

@@ -96,6 +96,7 @@
             <DailyListening 
               :streaming-data="streamingData" 
               :initial-date="selectedDate"
+              @search="handleSearch"
             />
           </div>
           <div v-else>

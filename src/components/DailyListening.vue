@@ -24,7 +24,7 @@
       <TrackTable 
         :tracks="filteredTracks" 
         :show-time="true"
-        @search="emit('search', $event)"
+        @search="handleTableSearch"
       />
     </div>
 
@@ -76,6 +76,11 @@ const emit = defineEmits<{
 
 const selectedDate = ref(props.initialDate || '')
 const searchQuery = ref('')
+
+// Handle search from table
+const handleTableSearch = (params: { type: string, query: string }) => {
+  emit('search', params)
+}
 
 // Get min and max dates from the data
 const minDate = computed(() => {
