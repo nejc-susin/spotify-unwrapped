@@ -31,44 +31,12 @@
           Found {{ searchResults.length }} matching plays
         </div>
 
-        <div class="flex gap-4 mb-4">
-          <select v-model="sortBy" class="border rounded px-3 py-1">
-            <option value="date">Sort by Date</option>
-            <option value="track">Sort by Track Name</option>
-            <option value="artist">Sort by Artist</option>
-            <option value="album">Sort by Album</option>
-            <option value="duration">Sort by Duration</option>
-          </select>
-          <select v-model="sortOrder" class="border rounded px-3 py-1">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="bg-gray-50">
-                <th class="text-left py-2 px-4">Date</th>
-                <th class="text-left py-2 px-4">Time</th>
-                <th class="text-left py-2 px-4">Track</th>
-                <th class="text-left py-2 px-4">Artist</th>
-                <th class="text-left py-2 px-4">Album</th>
-                <th class="text-left py-2 px-4">Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="track in sortedResults" :key="track.ts" class="border-t hover:bg-gray-50">
-                <td class="py-2 px-4">{{ formatDate(track.ts) }}</td>
-                <td class="py-2 px-4">{{ formatTime(track.ts) }}</td>
-                <td class="py-2 px-4">{{ track.master_metadata_track_name }}</td>
-                <td class="py-2 px-4">{{ track.master_metadata_album_artist_name }}</td>
-                <td class="py-2 px-4">{{ track.master_metadata_album_album_name }}</td>
-                <td class="py-2 px-4">{{ formatDuration(track.ms_played) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <TrackTable 
+          :tracks="searchResults" 
+          :show-date="true" 
+          :show-time="true"
+          @search="emit('search', $event)"
+        />
       </div>
 
       <div v-else class="text-center text-gray-500 py-8">
@@ -82,9 +50,17 @@
   </div>
 </template>
 
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  name: 'SearchPlays'
+})
+</script>
+
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { format } from 'date-fns'
+import { ref } from 'vue'
+import TrackTable from './TrackTable.vue'
 
 interface StreamingHistoryItem {
   ts: string
@@ -104,11 +80,13 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'search', params: { type: string, query: string }): void
+}>()
+
 const searchQuery = ref('')
 const searchType = ref('all')
 const hasSearched = ref(false)
-const sortBy = ref('date')
-const sortOrder = ref('desc')
 const searchResults = ref<StreamingHistoryItem[]>([])
 
 const performSearch = () => {
@@ -139,46 +117,6 @@ const performSearch = () => {
   })
 
   hasSearched.value = true
-}
-
-const sortedResults = computed(() => {
-  const sorted = [...searchResults.value]
-  sorted.sort((a, b) => {
-    let comparison = 0
-    switch (sortBy.value) {
-      case 'date':
-        comparison = a.ts.localeCompare(b.ts)
-        break
-      case 'track':
-        comparison = (a.master_metadata_track_name || '').localeCompare(b.master_metadata_track_name || '')
-        break
-      case 'artist':
-        comparison = (a.master_metadata_album_artist_name || '').localeCompare(b.master_metadata_album_artist_name || '')
-        break
-      case 'album':
-        comparison = (a.master_metadata_album_album_name || '').localeCompare(b.master_metadata_album_album_name || '')
-        break
-      case 'duration':
-        comparison = a.ms_played - b.ms_played
-        break
-    }
-    return sortOrder.value === 'asc' ? comparison : -comparison
-  })
-  return sorted
-})
-
-const formatDate = (timestamp: string) => {
-  return format(new Date(timestamp), 'MMM d, yyyy')
-}
-
-const formatTime = (timestamp: string) => {
-  return format(new Date(timestamp), 'HH:mm')
-}
-
-const formatDuration = (ms: number) => {
-  const minutes = Math.floor(ms / (1000 * 60))
-  const seconds = Math.floor((ms % (1000 * 60)) / 1000)
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
 // Expose properties and methods for external access
