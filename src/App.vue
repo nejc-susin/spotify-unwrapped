@@ -63,14 +63,30 @@
           <div v-if="activeTab === 'overview'">
             <div class="mb-8 bg-white p-6 rounded-lg shadow">
               <h2 class="text-2xl font-bold mb-4">Listening Overview</h2>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="p-4 bg-gray-50 rounded-lg">
                   <div class="text-sm text-gray-500">Total Listening Time</div>
                   <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime) }}</div>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-lg">
-                  <div class="text-sm text-gray-500">Total Tracks</div>
+                  <div class="text-sm text-gray-500">Total Plays</div>
                   <div class="text-2xl font-bold">{{ filteredData.length }}</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Unique Artists</div>
+                  <div class="text-2xl font-bold">{{ uniqueArtists }}</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Unique Songs</div>
+                  <div class="text-2xl font-bold">{{ uniqueSongs }}</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Unique Albums</div>
+                  <div class="text-2xl font-bold">{{ uniqueAlbums }}</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Average Daily Listening</div>
+                  <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime / (filteredData.length ? Math.ceil(filteredData.length / 24) : 1)) }}</div>
                 </div>
               </div>
             </div>
@@ -175,6 +191,25 @@ const handleFileUpload = async (event: Event) => {
 const totalListeningTime = computed(() => {
   if (!filteredData.value) return 0
   return filteredData.value.reduce((total, item) => total + item.ms_played, 0)
+})
+
+const uniqueArtists = computed(() => {
+  if (!filteredData.value) return 0
+  return new Set(filteredData.value.map(item => item.master_metadata_album_artist_name)).size
+})
+
+const uniqueSongs = computed(() => {
+  if (!filteredData.value) return 0
+  return new Set(filteredData.value.map(item => 
+    `${item.master_metadata_track_name}-${item.master_metadata_album_artist_name}`
+  )).size
+})
+
+const uniqueAlbums = computed(() => {
+  if (!filteredData.value) return 0
+  return new Set(filteredData.value.map(item => 
+    `${item.master_metadata_album_album_name}-${item.master_metadata_album_artist_name}`
+  )).size
 })
 
 const formatDuration = (ms: number) => {
