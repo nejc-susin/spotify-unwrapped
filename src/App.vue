@@ -20,74 +20,78 @@
       </div>
 
       <div v-else>
-        <div class="mb-8 flex justify-between items-center">
-          <div class="flex space-x-4">
-            <button 
-              @click="activeTab = 'overview'"
-              class="px-4 py-2 rounded-lg"
-              :class="activeTab === 'overview' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+        <div class="sticky top-0 z-10 bg-gray-100 py-4 -mx-4 px-4 shadow-sm">
+          <div class="flex justify-between items-center">
+            <div class="flex space-x-4">
+              <button 
+                @click="activeTab = 'overview'"
+                class="px-4 py-2 rounded-lg"
+                :class="activeTab === 'overview' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+              >
+                Overview
+              </button>
+              <button 
+                @click="activeTab = 'daily'"
+                class="px-4 py-2 rounded-lg"
+                :class="activeTab === 'daily' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+              >
+                Daily Listening
+              </button>
+              <button 
+                @click="activeTab = 'search'"
+                class="px-4 py-2 rounded-lg"
+                :class="activeTab === 'search' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+              >
+                Search
+              </button>
+            </div>
+            
+            <select 
+              v-if="activeTab === 'overview'"
+              v-model="selectedYear" 
+              class="border rounded px-3 py-1 bg-white"
             >
-              Overview
-            </button>
-            <button 
-              @click="activeTab = 'daily'"
-              class="px-4 py-2 rounded-lg"
-              :class="activeTab === 'daily' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
-            >
-              Daily Listening
-            </button>
-            <button 
-              @click="activeTab = 'search'"
-              class="px-4 py-2 rounded-lg"
-              :class="activeTab === 'search' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
-            >
-              Search
-            </button>
+              <option value="all">All Years</option>
+              <option v-for="year in availableYears" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
           </div>
-          
-          <select 
-            v-if="activeTab === 'overview'"
-            v-model="selectedYear" 
-            class="border rounded px-3 py-1"
-          >
-            <option value="all">All Years</option>
-            <option v-for="year in availableYears" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </select>
         </div>
 
-        <div v-if="activeTab === 'overview'">
-          <div class="mb-8 bg-white p-6 rounded-lg shadow">
-            <h2 class="text-2xl font-bold mb-4">Listening Overview</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">Total Listening Time</div>
-                <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime) }}</div>
+        <div class="mt-6">
+          <div v-if="activeTab === 'overview'">
+            <div class="mb-8 bg-white p-6 rounded-lg shadow">
+              <h2 class="text-2xl font-bold mb-4">Listening Overview</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Total Listening Time</div>
+                  <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime) }}</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="text-sm text-gray-500">Total Tracks</div>
+                  <div class="text-2xl font-bold">{{ filteredData.length }}</div>
+                </div>
               </div>
-              <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">Total Tracks</div>
-                <div class="text-2xl font-bold">{{ filteredData.length }}</div>
-              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <TopArtists :streaming-data="filteredData" />
+              <TopSongs :streaming-data="filteredData" />
+              <TopAlbums :streaming-data="filteredData" />
+            </div>
+
+            <div class="mt-6 h-[400px]">
+              <ListeningHistory :streaming-data="filteredData" />
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <TopArtists :streaming-data="filteredData" />
-            <TopSongs :streaming-data="filteredData" />
-            <TopAlbums :streaming-data="filteredData" />
+          <div v-else-if="activeTab === 'daily'">
+            <DailyListening :streaming-data="streamingData" />
           </div>
-
-          <div class="mt-6 h-[400px]">
-            <ListeningHistory :streaming-data="filteredData" />
+          <div v-else>
+            <SearchPlays :streaming-data="streamingData" />
           </div>
-        </div>
-
-        <div v-else-if="activeTab === 'daily'">
-          <DailyListening :streaming-data="streamingData" />
-        </div>
-        <div v-else>
-          <SearchPlays :streaming-data="streamingData" />
         </div>
       </div>
     </div>
