@@ -13,5 +13,10 @@ export default defineConfig({
   server: {
     port: 5173
   },
-  publicDir: 'assets'
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
+  publicDir: 'public'
 }) 

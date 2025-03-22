@@ -59,7 +59,7 @@ const handleFileUpload = async (event: Event) => {
 
 const loadSampleData = async () => {
   try {
-    const response = await fetch('/spotify-unwrapped/assets/data/Clean_Streaming_History_2020-2023.json')
+    const response = await fetch('data/Clean_Streaming_History_2020-2023.json')
     const rawData = await response.json() as StreamingHistoryItem[]
     emit('data-loaded', rawData)
   } catch (error) {
