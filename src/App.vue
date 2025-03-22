@@ -155,17 +155,21 @@ interface StreamingHistoryItem {
   reason_end: string
 }
 
+type Tab = 'overview' | 'daily' | 'search'
+
+// State
 const streamingData = ref<StreamingHistoryItem[]>()
 const fileInput = ref<HTMLInputElement>()
 const selectedYear = ref<string | number>('all')
-const activeTab = ref('overview')
+const activeTab = ref<Tab>('overview')
 const selectedDate = ref('')
 const searchComponent = ref(null)
 
+// Computed properties
 const availableYears = computed(() => {
   if (!streamingData.value) return []
   const years = new Set<number>()
-  streamingData.value.forEach(item => {
+  streamingData.value.forEach((item: StreamingHistoryItem) => {
     const year = new Date(item.ts).getFullYear()
     years.add(year)
   })
@@ -176,67 +180,38 @@ const filteredData = computed(() => {
   if (!streamingData.value) return []
   if (selectedYear.value === 'all') return streamingData.value
 
-  return streamingData.value.filter(item => {
+  return streamingData.value.filter((item: StreamingHistoryItem) => {
     const year = new Date(item.ts).getFullYear()
     return year === selectedYear.value
   })
 })
 
-const handleFileUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (!target.files?.length) return
-
-  const file = target.files[0]
-  const text = await file.text()
-  const rawData = JSON.parse(text)
-  // Filter to only include tracks that ended with "trackdone"
-  streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
-  // Set initial year to most recent
-  if (availableYears.value.length > 0) {
-    selectedYear.value = availableYears.value[0]
-  }
-}
-
-const loadSampleData = async () => {
-  try {
-    const response = await fetch('/spotify-unwrapped/assets/data/Clean_Streaming_History_2020-2023.json')
-    const rawData = await response.json()
-    // Filter to only include tracks that ended with "trackdone"
-    streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
-    // Set initial year to most recent
-    if (availableYears.value.length > 0) {
-      selectedYear.value = availableYears.value[0]
-    }
-  } catch (error) {
-    console.error('Error loading sample data:', error)
-    alert('Failed to load sample data. Please try again.')
-  }
-}
-
+// Statistics computed properties
 const totalListeningTime = computed(() => {
   if (!filteredData.value) return 0
-  return filteredData.value.reduce((total, item) => total + item.ms_played, 0)
+  return filteredData.value.reduce((total: number, item: StreamingHistoryItem) => total + item.ms_played, 0)
 })
 
 const uniqueArtists = computed(() => {
   if (!filteredData.value) return 0
-  return new Set(filteredData.value.map(item => item.master_metadata_album_artist_name)).size
+  return new Set(filteredData.value.map((item: StreamingHistoryItem) => item.master_metadata_album_artist_name)).size
 })
 
 const uniqueSongs = computed(() => {
   if (!filteredData.value) return 0
-  return new Set(filteredData.value.map(item => 
+  return new Set(filteredData.value.map((item: StreamingHistoryItem) => 
     `${item.master_metadata_track_name}-${item.master_metadata_album_artist_name}`
   )).size
 })
 
 const uniqueAlbums = computed(() => {
   if (!filteredData.value) return 0
-  return new Set(filteredData.value.map(item => 
+  return new Set(filteredData.value.map((item: StreamingHistoryItem) => 
     `${item.master_metadata_album_album_name}-${item.master_metadata_album_artist_name}`
   )).size
 })
 
+// Utility functions
 const formatDuration = (ms: number) => {
   const hours = Math.floor(ms / (1000 * 60 * 60))
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
@@ -247,15 +222,43 @@ const formatDuration = (ms: number) => {
   return `${minutes}m`
 }
 
-// Function to handle tab switching
-const switchTab = (tab: string, searchParams?: { type: string, query: string }) => {
+const processStreamingData = (rawData: StreamingHistoryItem[]) => {
+  // Filter to only include tracks that ended with "trackdone"
+  streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
+  // Set initial year to most recent
+  if (availableYears.value.length > 0) {
+    selectedYear.value = availableYears.value[0]
+  }
+}
+
+// Event handlers
+const handleFileUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files?.length) return
+
+  const file = target.files[0]
+  const text = await file.text()
+  const rawData = JSON.parse(text) as StreamingHistoryItem[]
+  processStreamingData(rawData)
+}
+
+const loadSampleData = async () => {
+  try {
+    const response = await fetch('/spotify-unwrapped/assets/data/Clean_Streaming_History_2020-2023.json')
+    const rawData = await response.json() as StreamingHistoryItem[]
+    processStreamingData(rawData)
+  } catch (error) {
+    console.error('Error loading sample data:', error)
+    alert('Failed to load sample data. Please try again.')
+  }
+}
+
+const switchTab = (tab: Tab, searchParams?: { type: string, query: string }) => {
   activeTab.value = tab
   window.scrollTo({ top: 0, behavior: 'smooth' })
   
   if (tab === 'search' && searchParams) {
-    // Wait for the next tick to ensure the search component is mounted
     nextTick(() => {
-      // Access the exposed properties
       searchComponent.value.searchQuery = searchParams.query
       searchComponent.value.searchType = searchParams.type
       searchComponent.value.performSearch()
