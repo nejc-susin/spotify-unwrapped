@@ -17,6 +17,15 @@
         >
           Upload Streaming History
         </button>
+        <p class="mt-4 text-gray-600">
+          Don't have your data yet? Try our
+          <button
+            @click="loadSampleData"
+            class="text-green-500 hover:text-green-600 underline"
+          >
+            sample data
+          </button>
+        </p>
       </div>
 
       <div v-else>
@@ -185,6 +194,22 @@ const handleFileUpload = async (event: Event) => {
   // Set initial year to most recent
   if (availableYears.value.length > 0) {
     selectedYear.value = availableYears.value[0]
+  }
+}
+
+const loadSampleData = async () => {
+  try {
+    const response = await fetch('/spotify-unwrapped/assets/data/Clean_Streaming_History_2020-2023.json')
+    const rawData = await response.json()
+    // Filter to only include tracks that ended with "trackdone"
+    streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
+    // Set initial year to most recent
+    if (availableYears.value.length > 0) {
+      selectedYear.value = availableYears.value[0]
+    }
+  } catch (error) {
+    console.error('Error loading sample data:', error)
+    alert('Failed to load sample data. Please try again.')
   }
 }
 
