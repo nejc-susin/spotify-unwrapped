@@ -254,14 +254,14 @@ const formatEndReason = (reason: string) => {
   return formatted === 'Trackdone' ? 'Track Finished' : formatted
 }
 
-const getDayName = (day: string | number) => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  return days[Number(day)]
+const getDayName = (day: number) => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  return days[day]
 }
 
-const getMonthName = (month: string | number) => {
+const getMonthName = (month: number) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return months[Number(month)]
+  return months[month]
 }
 </script>
 

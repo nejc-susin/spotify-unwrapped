@@ -39,9 +39,7 @@
     <div class="mt-6 h-[400px]">
       <ListeningHistory 
         :streaming-data="filteredData" 
-        @date-select="date => {
-          emit('date-select', date);
-        }"
+        @date-select="date => emit('date-select', date)"
       />
     </div>
   </div>
@@ -49,16 +47,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useStreamingStore } from '../stores/streaming'
+import type { StreamingHistoryItem } from '../stores/streaming'
 import TopArtists from './TopArtists.vue'
 import TopSongs from './TopSongs.vue'
 import TopAlbums from './TopAlbums.vue'
 import ListeningHistory from './ListeningHistory.vue'
-import type { StreamingHistoryItem } from '../stores/streaming'
 
-const props = defineProps<{
-  streamingData: StreamingHistoryItem[]
-  selectedYear: string | number
-}>()
+const store = useStreamingStore()
 
 const emit = defineEmits<{
   (e: 'date-select', date: string): void
@@ -66,12 +62,12 @@ const emit = defineEmits<{
 }>()
 
 const filteredData = computed(() => {
-  if (!props.streamingData) return []
-  if (props.selectedYear === 'all') return props.streamingData
+  if (!store.streamingData) return []
+  if (store.selectedYear === 'all') return store.streamingData
 
-  return props.streamingData.filter((item: StreamingHistoryItem) => {
+  return store.streamingData.filter((item: StreamingHistoryItem) => {
     const year = new Date(item.ts).getFullYear()
-    return year === props.selectedYear
+    return year === store.selectedYear
   })
 })
 
@@ -99,17 +95,18 @@ const uniqueAlbums = computed(() => {
   )).size
 })
 
+const handleSearch = (params: { type: string, query: string }) => {
+  emit('search', params)
+}
+
 const formatDuration = (ms: number) => {
   const hours = Math.floor(ms / (1000 * 60 * 60))
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000)
   
   if (hours > 0) {
-    return `${hours}h ${minutes}m`
+    return `${hours}h ${minutes}m ${seconds}s`
   }
-  return `${minutes}m`
-}
-
-const handleSearch = (params: { type: string, query: string }) => {
-  emit('search', params)
+  return `${minutes}m ${seconds}s`
 }
 </script> 

@@ -60,17 +60,11 @@ export default defineComponent({
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import TrackTable from './TrackTable.vue'
+import { useStreamingStore } from '../stores/streaming'
 import type { StreamingHistoryItem } from '../stores/streaming'
+import TrackTable from './TrackTable.vue'
 
-interface Props {
-  streamingData: StreamingHistoryItem[]
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  (e: 'search', params: { type: string, query: string }): void
-}>()
+const store = useStreamingStore()
 
 const searchQuery = ref('')
 const searchType = ref('all')
@@ -91,7 +85,7 @@ const performSearch = () => {
   }
 
   const query = searchQuery.value.toLowerCase()
-  searchResults.value = props.streamingData.filter(item => {
+  searchResults.value = store.streamingData.filter((item: StreamingHistoryItem) => {
     const trackName = (item.master_metadata_track_name || '').toLowerCase()
     const artistName = (item.master_metadata_album_artist_name || '').toLowerCase()
     const albumName = (item.master_metadata_album_album_name || '').toLowerCase()

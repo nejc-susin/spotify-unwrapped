@@ -5,17 +5,17 @@
         <button 
           v-for="tab in tabs"
           :key="tab"
-          @click="$emit('tab-change', tab)"
+          @click="store.setActiveTab(tab)"
           class="px-4 py-2 rounded-lg"
-          :class="activeTab === tab ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
+          :class="store.activeTab === tab ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100'"
         >
           {{ tab }}
         </button>
       </div>
       
       <select 
-        v-if="activeTab === 'overview'"
-        :value="selectedYear"
+        v-if="store.activeTab === 'overview'"
+        :value="store.selectedYear"
         @change="handleYearChange"
         class="border rounded px-3 py-1 bg-white"
       >
@@ -34,22 +34,11 @@ import { useStreamingStore } from '../stores/streaming'
 type Tab = 'overview' | 'daily' | 'search' | 'habits'
 
 const store = useStreamingStore()
-
-defineProps<{
-  activeTab: Tab
-  selectedYear: string | number
-}>()
-
-const emit = defineEmits<{
-  (e: 'tab-change', tab: Tab): void
-  (e: 'update:selectedYear', value: string | number): void
-}>()
-
 const tabs: Tab[] = ['overview', 'daily', 'search', 'habits']
 
 const handleYearChange = (event: Event) => {
   const target = event.target as HTMLSelectElement
   const value = target.value
-  emit('update:selectedYear', value === 'all' ? 'all' : Number(value))
+  store.setSelectedYear(value === 'all' ? 'all' : Number(value))
 }
 </script> 
