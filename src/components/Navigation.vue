@@ -20,7 +20,7 @@
         class="border rounded px-3 py-1 bg-white"
       >
         <option value="all">All Years</option>
-        <option v-for="year in availableYears" :key="year" :value="year">
+        <option v-for="year in store.availableYears" :key="year" :value="year">
           {{ year }}
         </option>
       </select>
@@ -29,25 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
-interface StreamingHistoryItem {
-  ts: string
-  username: string
-  platform: string
-  ms_played: number
-  conn_country: string
-  ip_addr_decrypted: string
-  master_metadata_track_name: string
-  master_metadata_album_artist_name: string
-  master_metadata_album_album_name: string
-  reason_end: string
-}
+import { useStreamingStore } from '../stores/streaming'
 
 type Tab = 'overview' | 'daily' | 'search' | 'habits'
 
-const props = defineProps<{
-  streamingData: StreamingHistoryItem[]
+const store = useStreamingStore()
+
+defineProps<{
   activeTab: Tab
   selectedYear: string | number
 }>()
@@ -58,16 +46,6 @@ const emit = defineEmits<{
 }>()
 
 const tabs: Tab[] = ['overview', 'daily', 'search', 'habits']
-
-const availableYears = computed(() => {
-  if (!props.streamingData) return []
-  const years = new Set<number>()
-  props.streamingData.forEach((item: StreamingHistoryItem) => {
-    const year = new Date(item.ts).getFullYear()
-    years.add(year)
-  })
-  return Array.from(years).sort((a, b) => b - a) // Sort descending
-})
 
 const handleYearChange = (event: Event) => {
   const target = event.target as HTMLSelectElement

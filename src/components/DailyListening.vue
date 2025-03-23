@@ -50,19 +50,7 @@ export default defineComponent({
 import { ref, computed, watch } from 'vue'
 import { format } from 'date-fns'
 import TrackTable from './TrackTable.vue'
-
-interface StreamingHistoryItem {
-  ts: string
-  username: string
-  platform: string
-  ms_played: number
-  conn_country: string
-  ip_addr_decrypted: string
-  master_metadata_track_name: string
-  master_metadata_album_artist_name: string
-  master_metadata_album_album_name: string
-  reason_end: string
-}
+import type { StreamingHistoryItem } from '../stores/streaming'
 
 interface Props {
   streamingData: StreamingHistoryItem[]

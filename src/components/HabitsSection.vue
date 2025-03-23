@@ -65,7 +65,7 @@
       <h2 class="text-2xl font-bold mb-4">How Songs End</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div v-for="(count, reason) in endReasons" :key="reason" class="text-center p-4 bg-gray-50 rounded-lg">
-          <div class="text-3xl font-bold text-green-500">{{ ((count / totalPlays) * 100).toFixed(1) }}%</div>
+          <div class="text-3xl font-bold text-green-500">{{ ((count / store.totalPlays) * 100).toFixed(1) }}%</div>
           <div class="text-gray-600 mt-2">{{ formatEndReason(reason) }}</div>
         </div>
       </div>
@@ -76,7 +76,7 @@
       <h2 class="text-2xl font-bold mb-4">How Songs Start</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div v-for="(count, reason) in startReasons" :key="reason" class="text-center p-4 bg-gray-50 rounded-lg">
-          <div class="text-3xl font-bold text-green-500">{{ ((count / totalPlays) * 100).toFixed(1) }}%</div>
+          <div class="text-3xl font-bold text-green-500">{{ ((count / store.totalPlays) * 100).toFixed(1) }}%</div>
           <div class="text-gray-600 mt-2">{{ formatStartReason(reason) }}</div>
         </div>
       </div>
@@ -117,7 +117,7 @@
             :key="day"
             class="text-center"
           >
-            <div class="text-lg font-bold">{{ ((count / totalMinutes) * 100).toFixed(1) }}%</div>
+            <div class="text-lg font-bold">{{ ((count / store.totalMinutes) * 100).toFixed(1) }}%</div>
             <div class="text-sm text-gray-600">{{ getDayName(day) }}</div>
           </div>
         </div>
@@ -132,7 +132,7 @@
             :key="month"
             class="text-center"
           >
-            <div class="text-lg font-bold">{{ ((count / totalMinutes) * 100).toFixed(1) }}%</div>
+            <div class="text-lg font-bold">{{ ((count / store.totalMinutes) * 100).toFixed(1) }}%</div>
             <div class="text-sm text-gray-600">{{ getMonthName(month) }}</div>
           </div>
         </div>
@@ -143,67 +143,50 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useStreamingStore } from '../stores/streaming'
+import type { StreamingHistoryItem } from '../stores/streaming'
 
-interface StreamingHistoryItem {
-  ts: string
-  username: string
-  platform: string
-  ms_played: number
-  conn_country: string
-  ip_addr_decrypted: string
-  master_metadata_track_name: string
-  master_metadata_album_artist_name: string
-  master_metadata_album_album_name: string
-  reason_end: string
-  reason_start: string
-  shuffle: boolean
-  skipped: boolean
-  offline: boolean
-}
+const store = useStreamingStore()
 
-const props = defineProps<{
-  streamingData: StreamingHistoryItem[]
-}>()
-
-// Calculate percentages
+// Playback habits
 const shufflePercentage = computed(() => {
-  const shufflePlays = props.streamingData.filter(item => item.shuffle).length
-  return Math.round((shufflePlays / props.streamingData.length) * 100)
+  if (!store.streamingData.length) return 0
+  const shufflePlays = store.streamingData.filter((item: StreamingHistoryItem) => item.shuffle).length
+  return Math.round((shufflePlays / store.streamingData.length) * 100)
 })
 
 const skippedPercentage = computed(() => {
-  const skippedPlays = props.streamingData.filter(item => item.skipped).length
-  return Math.round((skippedPlays / props.streamingData.length) * 100)
+  if (!store.streamingData.length) return 0
+  const skippedPlays = store.streamingData.filter((item: StreamingHistoryItem) => item.skipped).length
+  return Math.round((skippedPlays / store.streamingData.length) * 100)
 })
 
 const offlinePercentage = computed(() => {
-  const offlinePlays = props.streamingData.filter(item => item.offline).length
-  return Math.round((offlinePlays / props.streamingData.length) * 100)
+  if (!store.streamingData.length) return 0
+  const offlinePlays = store.streamingData.filter((item: StreamingHistoryItem) => item.offline).length
+  return Math.round((offlinePlays / store.streamingData.length) * 100)
 })
 
-// Calculate end reasons
+// Song endings and starts
 const endReasons = computed(() => {
   const reasons: Record<string, number> = {}
-  props.streamingData.forEach(item => {
+  store.streamingData.forEach((item: StreamingHistoryItem) => {
     let reason = item.reason_end
     if (['unknown', 'trackerror', 'unexpected-exit-while-paused', 'unexpected-exit'].includes(item.reason_end)) {
-        reason = "other";
+      reason = "other"
     } else if (['fwdbtn', 'backbtn'].includes(item.reason_end)) {
-        reason = "Next / Previous";
+      reason = "Next / Previous"
     } else if (['endplay', 'logout', 'remote'].includes(item.reason_end)) {
-        reason = "Stopped Playing";
+      reason = "Stopped Playing"
     }
     reasons[reason] = (reasons[reason] || 0) + 1
   })
   return reasons
 })
 
-const totalPlays = computed(() => props.streamingData.length)
-
-// Calculate start reasons
 const startReasons = computed(() => {
   const reasons: Record<string, number> = {}
-  props.streamingData.forEach(item => {
+  store.streamingData.forEach((item: StreamingHistoryItem) => {
     let reason = item.reason_start
     if (['clickrow', 'clickside'].includes(item.reason_start)) {
       reason = 'Clicked Track'
@@ -222,18 +205,22 @@ const startReasons = computed(() => {
 // Time distributions
 const hourDistribution = computed(() => {
   const hours: Record<number, number> = {}
-  props.streamingData.forEach(item => {
+  store.streamingData.forEach((item: StreamingHistoryItem) => {
     const hour = new Date(item.ts).getHours()
-    hours[hour] = (hours[hour] || 0) + (item.ms_played / (1000 * 60)) // Convert to minutes
+    hours[hour] = (hours[hour] || 0) + (item.ms_played / (1000 * 60))
   })
   return hours
 })
 
-const maxHourCount = computed(() => Math.max(...Object.values(hourDistribution.value)))
+const maxHourCount = computed(() => {
+  if (!store.streamingData.length) return 0
+  const values = Object.values(hourDistribution.value) as number[]
+  return Math.max(...values)
+})
 
 const dayDistribution = computed(() => {
   const days: Record<number, number> = {}
-  props.streamingData.forEach(item => {
+  store.streamingData.forEach((item: StreamingHistoryItem) => {
     const day = new Date(item.ts).getDay()
     days[day] = (days[day] || 0) + (item.ms_played / (1000 * 60))
   })
@@ -242,16 +229,12 @@ const dayDistribution = computed(() => {
 
 const monthDistribution = computed(() => {
   const months: Record<number, number> = {}
-  props.streamingData.forEach(item => {
+  store.streamingData.forEach((item: StreamingHistoryItem) => {
     const month = new Date(item.ts).getMonth()
     months[month] = (months[month] || 0) + (item.ms_played / (1000 * 60))
   })
   return months
 })
-
-const totalMinutes = computed(() => 
-  props.streamingData.reduce((sum, item) => sum + (item.ms_played / (1000 * 60)), 0)
-)
 
 // Helper functions
 const formatStartReason = (reason: string) => {

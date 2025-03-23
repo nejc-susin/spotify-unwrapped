@@ -14,4 +14,9 @@ declare module 'vue' {
 }
 
 declare function defineProps<T>(): Readonly<T>
-declare function defineEmits<T>(): T 
+declare function defineEmits<T>(): T
+
+// Add missing Vue exports
+declare module 'vue' {
+  export { ref, computed, onMounted, nextTick, defineComponent } from '@vue/runtime-core'
+} 

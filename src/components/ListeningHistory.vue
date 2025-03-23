@@ -26,6 +26,7 @@ import {
   Legend
 } from 'chart.js'
 import { format, parse, eachDayOfInterval, startOfYear, endOfYear } from 'date-fns'
+import type { StreamingHistoryItem } from '../stores/streaming'
 
 ChartJS.register(
   CategoryScale,
@@ -35,18 +36,6 @@ ChartJS.register(
   Tooltip,
   Legend
 )
-
-interface StreamingHistoryItem {
-  ts: string
-  username: string
-  platform: string
-  ms_played: number
-  conn_country: string
-  ip_addr_decrypted: string
-  master_metadata_track_name: string
-  master_metadata_album_artist_name: string
-  master_metadata_album_album_name: string
-}
 
 interface Props {
   streamingData: StreamingHistoryItem[]
