@@ -12,6 +12,10 @@
           <div class="text-2xl font-bold">{{ filteredData.length }}</div>
         </div>
         <div class="p-4 bg-gray-50 rounded-lg">
+          <div class="text-sm text-gray-500">Average Daily Listening</div>
+          <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime / (filteredData.length ? Math.ceil(filteredData.length / 24) : 1)) }}</div>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg">
           <div class="text-sm text-gray-500">Unique Artists</div>
           <div class="text-2xl font-bold">{{ uniqueArtists }}</div>
         </div>
@@ -22,10 +26,6 @@
         <div class="p-4 bg-gray-50 rounded-lg">
           <div class="text-sm text-gray-500">Unique Albums</div>
           <div class="text-2xl font-bold">{{ uniqueAlbums }}</div>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <div class="text-sm text-gray-500">Average Daily Listening</div>
-          <div class="text-2xl font-bold">{{ formatDuration(totalListeningTime / (filteredData.length ? Math.ceil(filteredData.length / 24) : 1)) }}</div>
         </div>
       </div>
     </div>
