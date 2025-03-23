@@ -44,7 +44,7 @@ interface StreamingHistoryItem {
   reason_end: string
 }
 
-type Tab = 'overview' | 'daily' | 'search'
+type Tab = 'overview' | 'daily' | 'search' | 'habits'
 
 const props = defineProps<{
   streamingData: StreamingHistoryItem[]
@@ -57,7 +57,7 @@ const emit = defineEmits<{
   (e: 'update:selectedYear', value: string | number): void
 }>()
 
-const tabs: Tab[] = ['overview', 'daily', 'search']
+const tabs: Tab[] = ['overview', 'daily', 'search', 'habits']
 
 const availableYears = computed(() => {
   if (!props.streamingData) return []

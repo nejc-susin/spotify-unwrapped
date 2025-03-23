@@ -32,8 +32,13 @@
           />
 
           <SearchPlays
-            v-else
+            v-else-if="activeTab === 'search'"
             ref="searchComponent"
+            :streaming-data="streamingData"
+          />
+
+          <HabitsSection
+            v-else-if="activeTab === 'habits'"
             :streaming-data="streamingData"
           />
         </div>
@@ -49,6 +54,7 @@ import Navigation from './components/Navigation.vue'
 import OverviewSection from './components/OverviewSection.vue'
 import DailyListening from './components/DailyListening.vue'
 import SearchPlays from './components/SearchPlays.vue'
+import HabitsSection from './components/HabitsSection.vue'
 
 interface StreamingHistoryItem {
   ts: string
@@ -63,7 +69,7 @@ interface StreamingHistoryItem {
   reason_end: string
 }
 
-type Tab = 'overview' | 'daily' | 'search'
+type Tab = 'overview' | 'daily' | 'search' | 'habits'
 
 // State
 const streamingData = ref<StreamingHistoryItem[]>()
@@ -75,7 +81,8 @@ const searchComponent = ref(null)
 // Event handlers
 const handleDataLoaded = (rawData: StreamingHistoryItem[]) => {
   // Filter to only include tracks that ended with "trackdone"
-  streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
+  // streamingData.value = rawData.filter((item: StreamingHistoryItem) => item.reason_end === "trackdone")
+  streamingData.value = rawData;
 }
 
 const handleDateSelect = (date: string) => {
